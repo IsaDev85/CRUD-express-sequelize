@@ -1,10 +1,12 @@
 const express = require("express");
 
 const routeUsers = require("./routes/user.route");
+require("dotenv").config()
+
 
 const app = express();
 
 app.use(express.json());
 app.use("/api/user", routeUsers);
 
-app.listen(3000, () => console.log("👍 Server corriendo"));
+app.listen(process.env.SERVER_PORT, () => console.log("👍 Server corriendo"));
