@@ -26,16 +26,13 @@ const createUser = async (req, res) => {
   }
 };
 const updateUser = async (req, res) => {
-  const user = await UserService.findById(req.params.id, req.body);
-
-  if (!user) {
-    res.status(500).json({ error: "Usuario no existe" });
-  }
-
   try {
-    await UserService.update(req.params.id);
-    res.status(200).json({ Message: "Usuario actualizado con exito" });
+    await UserService.update(req.params.id, req.body);
+    res.status(200).json({ Message: "Usuario actualizado con éxito" });
   } catch (error) {
+    if (error.message === "Usuario no encontrado") {
+      return res.status(404).json({ error: error.message });
+    }
     res.status(500).json({ Error: error.message });
   }
 };
@@ -60,21 +57,21 @@ const deleteUser = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const user = await UserService.findByName(req.body.user_name);
-
-  if (!user) {
-    res.status(500).json({ error: "usuario o contraseña equivocado" });
-  }
-
   try {
-    const hashPassword = await bcrypt.compare(
+    const user = await UserService.findByName(req.body.user_name);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ error: "Usuario o contraseña incorrectos" });
+    }
+    const isMatch = await bcrypt.compare(
       req.body.user_password,
       user.user_password,
     );
-    if (hashPassword) {
+    if (isMatch) {
       res.status(200).json({ message: "Login exitoso" });
     } else {
-      res.status(400).json({ message: "usuario o contraseña equivocado" });
+      res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }
   } catch (error) {
     res.status(500).json({ Error: error.message });
